@@ -12,21 +12,14 @@ To install the necessary dependencies for this project, follow these steps:
    pip --version
    ```
 
-2. **Navigate to the project directory**:  
-   Open your terminal or command prompt and change to the project directory where `requirements.txt` is located:
-
-   ```bash
-   cd /path/to/your/project
-   ```
-
-3. **Install the dependencies**:  
+2. **Install the dependencies**:  
    Run the following command to install all required packages:
 
    ```bash
    pip install -r requirements.txt
    ```
 
-4. **Verify installation**:  
+3. **Verify installation**:  
    After the installation is complete, you can verify that the packages are installed by checking the list of installed packages:
    ```bash
    pip list
