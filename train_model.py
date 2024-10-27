@@ -15,33 +15,44 @@ from sklearn.metrics import accuracy_score, mean_squared_error
 # from sklearn.metrics import auc
 
 load_dotenv()
-to_date = datetime.now().strftime('%Y-%m-%d')
-from_date = '2024-01-01'
+TO_DATE = datetime.now().strftime('%Y-%m-%d')
+FROM_DATE = '2024-01-01'
 
-def export_training_data():
-    URI = os.getenv('MONGO_URI')
-    DB_NAME = os.getenv('DATABASE_NAME')
-    COLL_NAME = os.getenv('COLLECTION_NAME')
 
-    client = pymongo.MongoClient(URI)
-    db = client[DB_NAME]
-    collection = db[COLL_NAME]
-    data = collection.find()
-    print("Successfully exported training data")
+# COnfigure with Gradio for text input
+
+def fetch_data(stocks):
+    # URI = os.getenv('MONGO_URI')
+    # DB_NAME = os.getenv('DATABASE_NAME')
+    # COLL_NAME = os.getenv('COLLECTION_NAME')
+
+    # client = pymongo.MongoClient(URI)
+    # db = client[DB_NAME]
+    # collection = db[COLL_NAME]
+    # data = collection.find()
+    # print("Successfully exported training data")
     
-    fin = financial_data.Benzinga(os.getenv('API_KEY'))
-    data = fin.bars('FTV', from_date, to_date, '1D')
-    # print(data)
-    candles = data[0]['candles']
-    df = pd.DataFrame(candles)
+    # print(to_date)
+     
+    for stock in stocks:
+        try:
+            fin = financial_data.Benzinga(os.getenv('API_KEY'))
+            data += fin.bars(stock, FROM_DATE, TO_DATE, '5M')
+            # print(data)
+        except Exception as e:
+            print(f"Error fetching data from Benzinga: {e}")
+        
+        candles = data[0]['candles']
+        df = pd.DataFrame(candles)
+    
     print(df.head(5))
     return df
 
 def prepare_labels(df, future_period=2, threshold=0.05):
-    # Future price to compare with predicted price
     df['future_price'] = df['close'].shift(-future_period)
-    # Percent change between future price and predicted price
     df['price_change'] = (df['future_price'] - df['close']) / df['close']
+
+    print(df['close'].head(5), df['future_price'].head(5))
 
     # Create the label
     df['signal'] = 0
@@ -52,6 +63,27 @@ def prepare_labels(df, future_period=2, threshold=0.05):
 
     print("Successfully added the signal column")
     # Drop last rows with missing future price data
+    return df
+
+def calculate_indicators(df):
+    # Calculate EMA, RSI, and Stochastic Oscillator
+    df['ema_fast'] = df['close'].ewm(span=12, adjust=False).mean()
+    df['ema_slow'] = df['close'].ewm(span=26, adjust=False).mean()
+    
+    delta = df['close'].diff()
+    gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
+    loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
+    df['rsi'] = 100 - (100 / (1 + (gain / loss)))
+
+    lowest_low = df['low'].rolling(window=14).min()
+    highest_high = df['high'].rolling(window=14).max()
+    df['slowk'] = 100 * ((df['close'] - lowest_low) / (highest_high - lowest_low))
+    df['slowd'] = df['slowk'].rolling(window=3).mean()
+    
+    df['macd'] = df['ema_fast'] - df['ema_slow']
+    df['macd_signal'] = df['macd'].ewm(span=9, adjust=False).mean()
+    df['macd_hist'] = df['macd'] - df['macd_signal']
+    
     return df
 
 # Prepare the feature set and labels for training
@@ -74,8 +106,8 @@ def train_model(X, y):
     print("Accuracy:", accuracy)
     return model
 
-def create_model():
-    df = export_training_data()
+def create_model(stocks=['AAPL', 'GOOG', 'NVDA']):
+    df = fetch_data(stocks)
     df.drop(df.columns[0], axis=1, inplace=True)
     print(df.head(5))
     
