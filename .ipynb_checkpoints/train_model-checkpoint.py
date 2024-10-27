@@ -1,10 +1,7 @@
 import os
 import pymongo
-import joblib
 import pandas as pd
 from dotenv import load_dotenv
-from datetime import datetime 
-from benzinga import financial_data
 # from sklearn.tree import DecisionTreeRegressor
 # from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestClassifier
@@ -15,8 +12,6 @@ from sklearn.metrics import accuracy_score, mean_squared_error
 # from sklearn.metrics import auc
 
 load_dotenv()
-to_date = datetime.now().strftime('%Y-%m-%d')
-from_date = '2024-01-01'
 
 def export_training_data():
     URI = os.getenv('MONGO_URI')
@@ -28,13 +23,33 @@ def export_training_data():
     collection = db[COLL_NAME]
     data = collection.find()
     print("Successfully exported training data")
+    return pd.DataFrame(list(data))
     
-    fin = financial_data.Benzinga(os.getenv('API_KEY'))
-    data = fin.bars('FTV', from_date, to_date, '1D')
-    # print(data)
-    candles = data[0]['candles']
-    df = pd.DataFrame(candles)
-    print(df.head(5))
+def calculate_indicators(df):
+    # df['macd'], df['macd_signal'], df['macd_hist'] = ta.MACD(df['close'], fastperiod=12, slowperiod=26, signalperiod=9)
+    # df['rsi'] = ta.RSI(df['close'], timeperiod=14)
+    # df['slowk'], df['slowd'] = ta.STOCH(df['high'], df['low'], df['close'], fastk_period=14, slowk_period=3, slowd_period=3)
+    ema_fast  = df['close'].ewm(span=12, adjust=False).mean()
+    ema_slow = df['close'].ewm(span=26, adjust=False).mean()
+
+    delta = df['close'].diff()
+    gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
+    loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
+    rsi = 100 - (100 / (1 + (gain / loss)))
+    
+    lowest_low = df['low'].rolling(window=14).min()
+    highest_high = df['high'].rolling(window=14).max()
+    k = 100 * ((df['close'] - lowest_low) / (highest_high - lowest_low))
+    d = k.rolling(window=3).mean()
+    
+    df['rsi'] = rsi
+    df['macd'] = ema_fast - ema_slow
+    df['macd_signal'] = df['macd'].ewm(span=9, adjust=False).mean()
+    df['macd_hist'] = df['macd'] - df['macd_signal']
+    df['slowk'] = k
+    df['slowd'] = d
+
+    print("Successfully calculated indictators")
     return df
 
 def prepare_labels(df, future_period=2, threshold=0.05):
@@ -82,7 +97,5 @@ def create_model():
     df = calculate_indicators(df)
     X, y = prepare_features_and_labels(df)
     model = train_model(X, y)
-    joblib.dump(model, 'random_forest_model.joblib')
-    print("Model successfully created")
 
 create_model()
