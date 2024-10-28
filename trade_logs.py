@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 URI = os.getenv('MONGO_URI')
 DB_NAME = os.getenv('DATABASE_NAME')
-COLL_NAME = os.getenv('COLLECTION_LOG')
+COLL_NAME = os.getenv('MARKET_LOG')
 
 client = pymongo.MongoClient(URI)
 db = client[DB_NAME]

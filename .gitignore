@@ -22,3 +22,5 @@ venv/
 .env.local/
 .venv/
 automated-trades-env/
+.ipynb_checkpoints/
+__pycache__/
