@@ -1,22 +1,22 @@
 import os
-import pymongo
+# import pymongo
 import joblib
 import pandas as pd
 from dotenv import load_dotenv
-from datetime import datetime 
+from datetime import datetime, timedelta
 from benzinga import financial_data
 # from sklearn.tree import DecisionTreeRegressor
 # from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
 from sklearn.metrics import accuracy_score, mean_squared_error
-# import time
+import time
 # from sklearn.metrics import roc_curve
 # from sklearn.metrics import auc
 
 load_dotenv()
-TO_DATE = datetime.now().strftime('%Y-%m-%d')
-FROM_DATE = '2024-01-01'
+START_DATE = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
+END_DATE = (datetime.now() - timedelta(days=27)).strftime('%Y-%m-%d')
 
 
 # COnfigure with Gradio for text input
@@ -31,19 +31,20 @@ def fetch_data(stocks):
     # collection = db[COLL_NAME]
     # data = collection.find()
     # print("Successfully exported training data")
+
+    print(START_DATE, END_DATE)
+    print(stocks)
+    df = pd.DataFrame()
     
-    # print(to_date)
-     
     for stock in stocks:
         try:
             fin = financial_data.Benzinga(os.getenv('API_KEY'))
-            data += fin.bars(stock, FROM_DATE, TO_DATE, '5M')
-            # print(data)
+            data = fin.bars(stock, START_DATE, END_DATE, '1H')
+            print(data)
+            candles = data[0]['candles']
+            df = pd.DataFrame(candles)
         except Exception as e:
             print(f"Error fetching data from Benzinga: {e}")
-        
-        candles = data[0]['candles']
-        df = pd.DataFrame(candles)
     
     print(df.head(5))
     return df
@@ -106,15 +107,13 @@ def train_model(X, y):
     print("Accuracy:", accuracy)
     return model
 
-def create_model(stocks=['AAPL', 'GOOG', NVDA]):
+def create_model(stocks):
     df = fetch_data(stocks)
-    df.drop(df.columns[0], axis=1, inplace=True)
-    print(df.head(5))
-    
+    df.drop(df.columns[0], axis=1, inplace=True)    
     df = calculate_indicators(df)
     X, y = prepare_features_and_labels(df)
     model = train_model(X, y)
     joblib.dump(model, 'random_forest_model.joblib')
     print("Model successfully created")
 
-create_model()
+create_model(['GOOG'])

@@ -1,5 +1,13 @@
+import os
 import time
-import train_model
+import pandas as pd
+from train_model import calculate_indicators
+from dotenv import load_dotenv
+from benzinga import financial_data
+from trade_logs import log_trade
+import joblib
+
+fin = financial_data.Benzinga(os.getenv('API_KEY'))
 
 # Function to fetch real-time data
 def fetch_latest_data(symbol, interval='1M'):
@@ -9,8 +17,9 @@ def fetch_latest_data(symbol, interval='1M'):
     return df
 
 # Real-time trading with the trained model
-def real_time_trading(symbol, model, poll_interval=60):
+def real_time_trading(symbol, poll_interval=60):
     df = pd.DataFrame()
+    model = joblib.load('random_forest_model.joblib')
 
     while True:
         try:
@@ -57,7 +66,9 @@ def real_time_trading(symbol, model, poll_interval=60):
                     print(f"Hold at price: {latest_row['close']} at {latest_row['time']}")
 
         except Exception as e:
-            print("Error: {e}")
+            print(f"Error: {e}")
 
         # Wait 60 seconds
         time.sleep(poll_interval)
+        
+real_time_trading('NVDA')
