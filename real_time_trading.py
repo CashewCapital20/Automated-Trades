@@ -2,7 +2,7 @@ import os
 import time
 import pandas as pd
 from train_model import calculate_indicators
-from trade_logs import log_market
+from trade_logs import log_trade
 from dotenv import load_dotenv
 from benzinga import financial_data
 from trade_logs import log_trade
