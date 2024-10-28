@@ -106,7 +106,7 @@ def train_model(X, y):
     print("Accuracy:", accuracy)
     return model
 
-def create_model(stocks=['AAPL', 'GOOG', 'NVDA']):
+def create_model(stocks=['AAPL', 'GOOG', NVDA]):
     df = fetch_data(stocks)
     df.drop(df.columns[0], axis=1, inplace=True)
     print(df.head(5))

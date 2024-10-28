@@ -1,0 +1,63 @@
+import time
+import train_model
+
+# Function to fetch real-time data
+def fetch_latest_data(symbol, interval='1M'):
+    data = fin.bars(symbol, date_from='1d', date_to=None, interval=interval)
+    candles = data[0]['candles']
+    df = pd.DataFrame(candles)
+    return df
+
+# Real-time trading with the trained model
+def real_time_trading(symbol, model, poll_interval=60):
+    df = pd.DataFrame()
+
+    while True:
+        try:
+            latest_data = fetch_latest_data(symbol, interval='1M')
+
+            # Drop duplicates in case of overlapping data
+            latest_data.drop_duplicates(subset='time', keep='last', inplace=True)
+
+            # If DataFrame is empty, initialize with the latest data
+            if df.empty:
+                df = latest_data
+            else:
+              df = pd.concat([df, latest_data]).drop_duplicates(subset='time', keep='last')
+
+            # Calculate technical indicators
+            df = calculate_indicators(df)
+
+            # Ensure indicators have suficient data to work on
+            if len(df) >= 26:
+                latest_row = df.iloc[-1].copy()
+
+                # Prepare input for the model
+                X_real_time = pd.DataFrame({
+                    'macd': [latest_row['macd']],
+                    'macd_hist': [latest_row['macd_hist']],
+                    'rsi': [latest_row['rsi']],
+                    'slowk': [latest_row['slowk']],
+                    'slowd': [latest_row['slowd']]
+                })
+
+                # Make prediction with the model
+                prediction = model.predict(X_real_time)[0]
+
+                # Trade based on prediction
+                if prediction == 1:
+                    print(f"Buy Signal at price: {latest_row['close']} at {latest_row['time']}")
+                elif prediction == -1:
+                    print(f"Sell Signal at price: {latest_row['close']} at {latest_row['time']}")
+                elif prediction == -2:
+                    print(f"Short Signal at price: {latest_row['close']} at {latest_row['time']}")
+                elif prediction == 2:
+                    print(f"Cover Signal at price: {latest_row['close']} at {latest_row['time']}")
+                else:
+                    print(f"Hold at price: {latest_row['close']} at {latest_row['time']}")
+
+        except Exception as e:
+            print("Error: {e}")
+
+        # Wait 60 seconds
+        time.sleep(poll_interval)
