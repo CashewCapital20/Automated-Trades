@@ -1,5 +1,5 @@
 import os
-# import pymongo
+import pymongo
 import joblib
 import pandas as pd
 from dotenv import load_dotenv
@@ -15,59 +15,50 @@ import time
 # from sklearn.metrics import auc
 
 load_dotenv()
-START_DATE = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
-END_DATE = (datetime.now() - timedelta(days=27)).strftime('%Y-%m-%d')
+# START_DATE = int((datetime.now() - timedelta(days=30)).timestamp() * 1000)
+# END_DATE = int((datetime.now()).timestamp() * 1000)
+# print(START_DATE, END_DATE)
 
+def fetch_data():
+    client = pymongo.MongoClient(os.getenv('MONGO_URI'))
+    db = client[os.getenv('DATABASE_NAME')]
+    collection = db[os.getenv('TRAINING_DATA')]
 
-# COnfigure with Gradio for text input
+    # query = {
+    #     'time': {
+    #         '$gte': START_DATE,
+    #         '$lte': END_DATE
+    #     }
+    # }
 
-def fetch_data(stocks):
-    # URI = os.getenv('MONGO_URI')
-    # DB_NAME = os.getenv('DATABASE_NAME')
-    # COLL_NAME = os.getenv('TRAINING_DATA')
-
-    # client = pymongo.MongoClient(URI)
-    # db = client[DB_NAME]
-    # collection = db[COLL_NAME]
-    # data = collection.find()
-    # print("Successfully exported training data")
-
-    print(START_DATE, END_DATE)
-    print(stocks)
-    df = pd.DataFrame()
-    
-    for stock in stocks:
-        try:
-            fin = financial_data.Benzinga(os.getenv('API_KEY'))
-            data = fin.bars(stock, START_DATE, END_DATE, '1H')
-            print(data)
-            candles = data[0]['candles']
-            df = pd.DataFrame(candles)
-        except Exception as e:
-            print(f"Error fetching data from Benzinga: {e}")
-    
-    print(df.head(5))
-    return df
+    try:
+        data = collection.find()
+        df = pd.DataFrame(list(data))
+        if not df.empty:
+            print(df.head(5))
+        else:
+            print("No data found within the specified date range.")
+        return df
+    except Exception as e:
+        print(f"Error fetching data from MongoDB: {e}")
+        return pd.DataFrame()
 
 def prepare_labels(df, future_period=2, threshold=0.05):
     df['future_price'] = df['close'].shift(-future_period)
     df['price_change'] = (df['future_price'] - df['close']) / df['close']
 
-    print(df['close'].head(5), df['future_price'].head(5))
+    print("Top 5 Rows:", df['close'].head(5), df['future_price'].head(5))
 
-    # Create the label
     df['signal'] = 0
-    df.loc[df['price_change'] > threshold, 'signal'] = 1    # buy signal
-    df.loc[(df['price_change'] < 0) & (df['signal'].shift(1) == 1), 'signal'] = -1    # Sell signal
-    df.loc[df['price_change'] < -threshold, 'signal'] = -2    # Short signal
-    df.loc[(df['price_change'] > 0) & (df['signal'].shift(1) == -2), 'signal'] = 2    # Cover signal
+    df.loc[df['price_change'] > threshold, 'signal'] = 1
+    df.loc[(df['price_change'] < 0) & (df['signal'].shift(1) == 1), 'signal'] = -1
+    df.loc[df['price_change'] < -threshold, 'signal'] = -2
+    df.loc[(df['price_change'] > 0) & (df['signal'].shift(1) == -2), 'signal'] = 2
 
     print("Successfully added the signal column")
-    # Drop last rows with missing future price data
     return df
 
 def calculate_indicators(df):
-    # Calculate EMA, RSI, and Stochastic Oscillator
     df['ema_fast'] = df['close'].ewm(span=12, adjust=False).mean()
     df['ema_slow'] = df['close'].ewm(span=26, adjust=False).mean()
     
@@ -87,7 +78,6 @@ def calculate_indicators(df):
     
     return df
 
-# Prepare the feature set and labels for training
 def prepare_features_and_labels(df):
     df = prepare_labels(df)
     features = ['macd', 'macd_hist', 'rsi', 'slowk', 'slowd']
@@ -107,13 +97,20 @@ def train_model(X, y):
     print("Accuracy:", accuracy)
     return model
 
-def create_model(stocks):
-    df = fetch_data(stocks)
-    df.drop(df.columns[0], axis=1, inplace=True)    
-    df = calculate_indicators(df)
-    X, y = prepare_features_and_labels(df)
-    model = train_model(X, y)
-    joblib.dump(model, 'random_forest_model.joblib')
-    print("Model successfully created")
+def create_model():
+    try:
+        df = fetch_data()
+        if df.empty:
+            print("No data to train the model.")
+            return
+        df.drop(df.columns[0], axis=1, inplace=True)    
+        df = calculate_indicators(df)
+        X, y = prepare_features_and_labels(df)
+        model = train_model(X, y)
+        joblib.dump(model, 'random_forest_model.joblib')
+        print("Model successfully created")
+        
+    except Exception as e:
+        print(f"Error has occurred when creating model: {e}")
 
-create_model(['GOOG'])
+create_model()
