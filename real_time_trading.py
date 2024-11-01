@@ -6,6 +6,7 @@ from trade_logs import log_trade
 from dotenv import load_dotenv
 from benzinga import financial_data
 from trade_logs import log_trade
+from datetime import datetime
 import joblib
 
 load_dotenv()
@@ -58,16 +59,29 @@ def real_time_trading(symbol, poll_interval=60):
                 # ================ #    
 
                 # Trade based on prediction
-                # if prediction == 1:
+                if prediction == 1:
+                    trade_type = "buy"
                 #     print(f"Buy Signal at price: {latest_row['close']} at {latest_row['time']}")
-                # elif prediction == -1:
+                elif prediction == -1:
+                    trade_type = "sell"
                 #     print(f"Sell Signal at price: {latest_row['close']} at {latest_row['time']}")
-                # elif prediction == -2:
+                elif prediction == -2:
+                    trade_type = "sell"
                 #     print(f"Short Signal at price: {latest_row['close']} at {latest_row['time']}")
-                # elif prediction == 2:
+                elif prediction == 2:
+                    trade_type = "buy"
                 #     print(f"Cover Signal at price: {latest_row['close']} at {latest_row['time']}")
                 # else:
                 #     print(f"Hold at price: {latest_row['close']} at {latest_row['time']}")
+
+                timestamp = datetime.now()
+                initial_price = 150.0
+                trade_price = 152.0
+                initial_funds = 10000.0  
+                quantity = 10
+                initial_quantity = 2234
+
+                log_trade(timestamp, symbol, initial_funds, trade_price, initial_quantity, quantity, trade_type)
 
         except Exception as e:
             print(f"Error: {e}")
