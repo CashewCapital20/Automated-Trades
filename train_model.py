@@ -55,6 +55,7 @@ def prepare_labels(df, future_period=2, threshold=0.05):
     df.loc[df['price_change'] < -threshold, 'signal'] = -2
     df.loc[(df['price_change'] > 0) & (df['signal'].shift(1) == -2), 'signal'] = 2
 
+    df.dropna(inplace=True)
     print("Successfully added the signal column")
     return df
 
