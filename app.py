@@ -1,6 +1,7 @@
 import gradio as gr
-from import_data_to_mongo import prepare_data
+from fetch_load_mongo import prepare_data
 from datetime import datetime, timedelta
+from real_time_trading import real_time_trading
 
 # placeholder for the model
 def stock_recommendation(stock_symbol):
@@ -17,7 +18,7 @@ def train_model(stocks):
         df = prepare_data(symbol, start_date, end_date)
         models.append(df)
         
-    return f"Successfully trained the models for {s for s in stocks}"
+    return f"Successfully trained the models for {stocks}"
 
 # End of day portfoio metrics
 # Download csv of market logs
@@ -38,3 +39,8 @@ with gr.Blocks() as demo:
     train_model_button.click(train_model, inputs=[stock1, stock2, stock3], outputs=output)
 
 demo.launch(share=False)
+
+def trading_interface(symbol):
+    # Run the real-time trading for the specified stock and duration
+    result = real_time_trading(symbol)
+    return result
