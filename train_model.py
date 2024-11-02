@@ -5,31 +5,22 @@ import pandas as pd
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 from benzinga import financial_data
-# from sklearn.tree import DecisionTreeRegressor
-# from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
 from sklearn.metrics import accuracy_score, mean_squared_error
 import time
-# from sklearn.metrics import roc_curve
-# from sklearn.metrics import auc
 
 load_dotenv()
-# START_DATE = int((datetime.now() - timedelta(days=30)).timestamp() * 1000)
-# END_DATE = int((datetime.now()).timestamp() * 1000)
-# print(START_DATE, END_DATE)
 
 def fetch_data():
+    """
+    Fetch data from MongoDB and return it as a pandas DataFrame.
+    Returns:
+        pd.DataFrame: DataFrame containing the fetched data.
+    """
     client = pymongo.MongoClient(os.getenv('MONGO_URI'))
     db = client[os.getenv('DATABASE_NAME')]
     collection = db[os.getenv('TRAINING_DATA')]
-
-    # query = {
-    #     'time': {
-    #         '$gte': START_DATE,
-    #         '$lte': END_DATE
-    #     }
-    # }
 
     try:
         data = collection.find()
@@ -44,6 +35,16 @@ def fetch_data():
         return pd.DataFrame()
 
 def prepare_labels(df, future_period=2, threshold=0.05):
+    """
+    Prepare labels for the dataset based on future price changes.
+    Args:
+        df (pd.DataFrame): DataFrame containing the data.
+        future_period (int): Number of periods to shift for future price.
+        threshold (float): Threshold for determining price change signals.
+    Returns:
+        pd.DataFrame: DataFrame with added 'future_price', 'price_change', and 'signal' columns.
+    """
+    
     df['future_price'] = df['close'].shift(-future_period)
     df['price_change'] = (df['future_price'] - df['close']) / df['close']
 
@@ -60,6 +61,14 @@ def prepare_labels(df, future_period=2, threshold=0.05):
     return df
 
 def calculate_indicators(df):
+    """
+    Calculate technical indicators for the dataset.
+    Args:
+        df (pd.DataFrame): DataFrame containing the data.
+    Returns:
+        pd.DataFrame: DataFrame with added technical indicator columns.
+    """
+    
     df['ema_fast'] = df['close'].ewm(span=12, adjust=False).mean()
     df['ema_slow'] = df['close'].ewm(span=26, adjust=False).mean()
     
@@ -80,6 +89,14 @@ def calculate_indicators(df):
     return df
 
 def prepare_features_and_labels(df):
+    """
+    Prepare features and labels for model training.
+    Args:
+        df (pd.DataFrame): DataFrame containing the data.
+    Returns:
+        tuple: Tuple containing features (X) and labels (y).
+    """
+    
     df = prepare_labels(df)
     features = ['macd', 'macd_hist', 'rsi', 'slowk', 'slowd']
     label = 'signal'
@@ -89,6 +106,15 @@ def prepare_features_and_labels(df):
     return X, y
 
 def train_model(X, y):
+    """
+    Train a RandomForestClassifier model.
+    Args:
+        X (pd.DataFrame): DataFrame containing the features.
+        y (pd.Series): Series containing the labels.
+    Returns:
+        RandomForestClassifier: Trained RandomForestClassifier model.
+    """
+    
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=1234)
     model = RandomForestClassifier(criterion='entropy', n_estimators=100, max_depth=7, max_features=20)
     model.fit(X_train, y_train)
@@ -99,6 +125,9 @@ def train_model(X, y):
     return model
 
 def create_model():
+    """
+    Create and save a RandomForestClassifier model.
+    """
     try:
         df = fetch_data()
         if df.empty:
