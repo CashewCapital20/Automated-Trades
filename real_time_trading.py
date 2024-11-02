@@ -20,13 +20,15 @@ def fetch_latest_data(symbol, interval='1M'):
     return df
 
 # Real-time trading with the trained model
-def real_time_trading(symbol, poll_interval=60):
+def real_time_trading(symbol, poll_interval=60, initial_funds=10000.0, 
+                      inventory=10, buying_power=10):
     df = pd.DataFrame()
     model = joblib.load('random_forest_model.joblib')
 
     while True:
         try:
             latest_data = fetch_latest_data(symbol, interval='1M')
+            fetched_price = latest_data["open"]
 
             # Drop duplicates in case of overlapping data
             latest_data.drop_duplicates(subset='time', keep='last', inplace=True)
@@ -59,29 +61,27 @@ def real_time_trading(symbol, poll_interval=60):
                 # ================ #    
 
                 # Trade based on prediction
+                trade_type = ""
                 if prediction == 1:
                     trade_type = "buy"
-                #     print(f"Buy Signal at price: {latest_row['close']} at {latest_row['time']}")
                 elif prediction == -1:
                     trade_type = "sell"
-                #     print(f"Sell Signal at price: {latest_row['close']} at {latest_row['time']}")
                 elif prediction == -2:
                     trade_type = "sell"
-                #     print(f"Short Signal at price: {latest_row['close']} at {latest_row['time']}")
                 elif prediction == 2:
                     trade_type = "buy"
-                #     print(f"Cover Signal at price: {latest_row['close']} at {latest_row['time']}")
-                # else:
-                #     print(f"Hold at price: {latest_row['close']} at {latest_row['time']}")
+                    
+                trade_price = fetch_latest_data(symbol, interval='1M')["open"]
 
-                timestamp = datetime.now()
-                initial_price = 150.0
-                trade_price = 152.0
-                initial_funds = 10000.0  
-                quantity = 10
-                initial_quantity = 2234
+                # timestamp = datetime.now()                
+                # initial_price = 150.0
+                # trade_price = 152.0
+                # initial_funds = 10000.0  
+                # quantity = 10
+                # initial_quantity = 2234
 
-                log_trade(timestamp, symbol, initial_funds, trade_price, initial_quantity, quantity, trade_type)
+                log_trade(datetime.now(), symbol, initial_funds, fetched_price, 
+                          trade_price, inventory, buying_power, trade_type)
 
         except Exception as e:
             print(f"Error: {e}")

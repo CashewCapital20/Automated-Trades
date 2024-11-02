@@ -50,9 +50,6 @@ def run_paper_trade(b, inv, qnt):
             
         break
     
-    
-    
-    
     # d = random.randint(from_timestamp, to_timestamp)
     # start_date = datetime.fromtimestamp(d).strftime('%Y-%m-%d')
     # end_date = (datetime.fromtimestamp(d) + timedelta(days=1)).strftime('%Y-%m-%d')

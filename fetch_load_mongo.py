@@ -2,10 +2,10 @@
 #! C:\Users\potat\Downloads\Automated-Trading\automated-trades-env\Scripts\python.exe
 
 import os
+from datetime import datetime, timedelta
 import pymongo
 import pandas as pd
 from dotenv import load_dotenv
-from datetime import datetime, timedelta
 from benzinga import financial_data
 
 load_dotenv()
@@ -24,21 +24,6 @@ def fetch_data(symbol, date_from, date_to, interval='1D'):
     except Exception as e:
         print(f"Error fetching data for {symbol}: {e}")
         return pd.DataFrame()
-    
-    
-    
-def prepare_data(symbol, date_from, date_to, interval='1D'):
-    try:
-        df = fetch_data(symbol, date_from, date_to, interval)
-        if df.empty:
-            print(f"No data fetched for {symbol}")
-            return df
-        df = calculate_indicators(df)
-        return df
-    except Exception as e:
-        print(f"Error preparing data for {symbol}: {e}")
-        return pd.DataFrame()
-    
     
 
 def calculate_indicators(df):
@@ -59,12 +44,11 @@ def calculate_indicators(df):
         df['macd'] = df['ema_fast'] - df['ema_slow']
         df['macd_signal'] = df['macd'].ewm(span=9, adjust=False).mean()
         df['macd_hist'] = df['macd'] - df['macd_signal']
-        
-        return df
+
     except Exception as e:
         print(f"Error calculating indicators: {e}")
-        return df
-
+    
+    return df
 
 
 def uploading_hdata(training_data):
@@ -80,3 +64,16 @@ def uploading_hdata(training_data):
             print(f"Error uploading data to MongoDB: {e}")
     except Exception as e:
         print(f"Error connecting to MongoDB: {e}")
+        
+
+def prepare_data(symbol, date_from, date_to, interval='1D'):
+    try:
+        df = fetch_data(symbol, date_from, date_to, interval)
+        if df.empty:
+            print(f"No data fetched for {symbol}")
+            return df
+        df = calculate_indicators(df)
+        return df
+    except Exception as e:
+        print(f"Error preparing data for {symbol}: {e}")
+        return pd.DataFrame()

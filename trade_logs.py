@@ -15,7 +15,8 @@ collection = db[COLL_NAME]
 data = collection.find()
 # print("Successfully exported training data")
 
-def log_trade(timestamp, stock, initial_funds, trade_price, initial_quantity, quantity_traded, trade_type):
+def log_trade(timestamp, stock, initial_funds, initial_price, trade_price, 
+              initial_quantity, quantity_traded, trade_type):
     total_cost = trade_price * quantity_traded
     remaining_quantity = initial_quantity
     funds_remaining = initial_funds
@@ -35,6 +36,7 @@ def log_trade(timestamp, stock, initial_funds, trade_price, initial_quantity, qu
 
     document = {"timestamp": timestamp,
     "initial_funds": initial_funds,
+    "initial_price": initial_price,
     "trade_price": trade_price,
     "initial_quantity": initial_quantity,
     "quantity_traded": quantity_traded,
@@ -45,13 +47,13 @@ def log_trade(timestamp, stock, initial_funds, trade_price, initial_quantity, qu
     collection.insert_one(document)
     print("Executed trade: ", log_message)
 
-timestamp = datetime.now()
-stock = "AAPL"
-initial_price = 150.0
-trade_price = 152.0
-initial_funds = 10000.0  
-quantity = 10
-initial_quantity = 2234
-trade_type = "sell" 
+# timestamp = datetime.now()
+# stock = "AAPL"
+# initial_price = 150.0
+# trade_price = 152.0
+# initial_funds = 10000.0  
+# quantity = 10
+# initial_quantity = 2234
+# trade_type = "sell" 
 
-log_trade(timestamp, stock, initial_funds, trade_price, initial_quantity, quantity, trade_type)
+# log_trade(timestamp, stock, initial_funds, trade_price, initial_quantity, quantity, trade_type)
