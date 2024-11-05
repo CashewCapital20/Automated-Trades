@@ -7,7 +7,7 @@ Original file is located at
     https://colab.research.google.com/drive/1N0WlAxIa6WfGTgAWd6HHXpJ1CitJVUGO
 """
 
-!pip install benzinga
+#!pip install benzinga
 
 """# Stock Trading Prediction Model with Hybrid Ensemble
 # Hybrid Ensemble Model for Stock Trading Prediction: Integrating Machine Learning Classifiers and Stacking Techniques

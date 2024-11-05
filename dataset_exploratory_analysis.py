@@ -27,7 +27,6 @@ def fetch_data(stocks, interval='1D'):
         
 
 def plot_indicators(df, symbol):
-    # Create figure and set size
     fig, axes = plt.subplots(nrows=4, ncols=1, figsize=(14, 10), sharex=True)
 
     # Plot Close Price
@@ -59,12 +58,40 @@ def plot_indicators(df, symbol):
 
     # Final formatting
     plt.tight_layout()
-    plt.show()
+    plt.savefig(f'exploratory_analysis/{symbol}_TI')
 
+# Rolling mean smooths out short-term fluctuations, revealing the underlying trend.
+def rolling_mean(df, symbol):
+    df['20-day MA'] = df['close'].rolling(window=20).mean()
+    df['50-day MA'] = df['close'].rolling(window=50).mean()
+
+    plt.figure(figsize=(14, 7))
+    plt.plot(df['close'], label='Close Price')
+    plt.plot(df['20-day MA'], label='20-Day Moving Average')
+    plt.plot(df['50-day MA'], label='50-Day Moving Average')
+    plt.legend(loc='upper left')
+
+    plt.savefig(f'exploratory_analysis/{symbol}_RM')
+
+
+# Variability of stock prices over a certain window. 
+# High rolling volatility indicates periods of high risk or instability in the stock price.
+def rolling_standard_deviation(df, symbol):
+    # Calculating the rolling 20-day standard deviation for the 'Close' price
+    df['20-day Volatility'] = df['close'].rolling(window=20).std()
+
+    plt.figure(figsize=(14, 7))
+    plt.plot(df['20-day Volatility'], label='20-Day Volatility')
+    plt.title('Rolling Volatility')
+    plt.xlabel('Date')
+    plt.ylabel('Volatility (Standard Deviation)')
+    plt.legend(loc='upper left')
+    
+    plt.savefig(f'exploratory_analysis/{symbol}_RSD')
 
 # ======================================= #
  
-stocks = ["GOOG", "SPY", "AMZN", "NVDA"]    # sample set of companies
+stocks = ["GOOG", "NVDA", "PG", "SPY", "PLTR"]    # sample set of companies
 dfs = fetch_data(stocks)
 # print(dfs)
 
@@ -74,5 +101,7 @@ for symbol, df in zip(stocks, dfs):
     
     print("\nTicker Symbol:", symbol)
     print(df.isna().sum())
-    plot_indicators(symbol, df)
+    plot_indicators(df, symbol)
+    rolling_mean(df, symbol)
+    rolling_standard_deviation(df, symbol)
     
