@@ -26,3 +26,8 @@ To install the necessary dependencies for this project, follow these steps:
    ```
 
 You're all set! If you encounter any issues, please refer to the project's documentation or reach out for help.
+
+## Resources
+
+- HISTORICAL: https://docs.benzinga.com/benzinga-apis/bars/get-bars
+- REAL-TIME: https://docs.benzinga.com/benzinga-apis/delayed-quote/get-quoteDelayed

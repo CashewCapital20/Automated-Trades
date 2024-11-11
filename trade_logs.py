@@ -27,7 +27,7 @@ def log_trade(timestamp, stock, initial_funds, initial_price, trade_price,
     elif trade_type.lower() == "sell":
         remaining_quantity = initial_quantity - quantity_traded
         funds_remaining = initial_funds + total_cost
-
+    
     log_message = (
         f"{trade_type} {quantity_traded} shares of {stock} at ${trade_price:.2f} per share. "
         f"Initial quantity: {initial_quantity:.2f}. "

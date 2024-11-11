@@ -1,92 +1,151 @@
-import os
-import time
-import pandas as pd
-from train_model import calculate_indicators
-from trade_logs import log_trade
-from dotenv import load_dotenv
-from benzinga import financial_data
-from trade_logs import log_trade
-from datetime import datetime
+import asyncio
 import joblib
+import logging
+import os
+import pandas as pd
+import requests
+import time
+from benzinga import financial_data
+from datetime import datetime
+from dotenv import load_dotenv
+from train_model import TradingModel
+from trade_logs import log_trade
+from fetch_load_mongo import DataFetcher
 
-load_dotenv()
-fin = financial_data.Benzinga(os.getenv('API_KEY'))
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# Function to fetch real-time data
-def fetch_latest_data(symbol, interval='1M'):
-    data = fin.bars(symbol, date_from='1d', date_to=None, interval=interval)
-    candles = data[0]['candles']
-    df = pd.DataFrame(candles)
-    return df
+class RealTimeTrader:
+    def __init__(self, symbol, poll_interval=5, initial_funds=10000.0,
+                 inventory=10, buying_power=10):
+        load_dotenv()
+        self.symbol = symbol
+        self.api_key = os.getenv('BENZINGA_APIKEY')
+        self.poll_interval = poll_interval
+        self.initial_funds = initial_funds
+        self.inventory = inventory
+        self.buying_power = buying_power
+        self.model = joblib.load('random_forest_model.joblib')
+        self.base_url = "https://api.benzinga.com/api/v1/quoteDelayed"
+        self.trading_model = TradingModel()
+        # self.data_fetcher = DataFetcher()
 
-# Real-time trading with the trained model
-def real_time_trading(symbol, poll_interval=60, initial_funds=10000.0, 
-                      inventory=10, buying_power=10):
-    df = pd.DataFrame()
-    model = joblib.load('random_forest_model.joblib')
-
-    while True:
-        try:
-            latest_data = fetch_latest_data(symbol, interval='1M')
-            fetched_price = latest_data["open"]
-
-            # Drop duplicates in case of overlapping data
-            latest_data.drop_duplicates(subset='time', keep='last', inplace=True)
-
-            # If DataFrame is empty, initialize with the latest data
-            if df.empty:
-                df = latest_data
-            else:
-              df = pd.concat([df, latest_data]).drop_duplicates(subset='time', keep='last')
-
-            df = calculate_indicators(df)
-
-            # Ensure indicators have suficient data to work on
-            if len(df) >= 26:
-                latest_row = df.iloc[-1].copy()
-
-                # Add the computed rows needed to pass into model
-                X_real_time = pd.DataFrame({
-                    'macd': [latest_row['macd']],
-                    'macd_hist': [latest_row['macd_hist']],
-                    'rsi': [latest_row['rsi']],
-                    'slowk': [latest_row['slowk']],
-                    'slowd': [latest_row['slowd']]
-                })
-                prediction = model.predict(X_real_time)[0]
-
-                # ================ #    
-                # Connect with log_market function here or merge 
-                # this file with the "log_market" function
-                # ================ #    
-
-                # Trade based on prediction
-                trade_type = ""
-                if prediction == 1:
-                    trade_type = "buy"
-                elif prediction == -1:
-                    trade_type = "sell"
-                elif prediction == -2:
-                    trade_type = "sell"
-                elif prediction == 2:
-                    trade_type = "buy"
-                    
-                trade_price = fetch_latest_data(symbol, interval='1M')["open"]
-
-                # timestamp = datetime.now()                
-                # initial_price = 150.0
-                # trade_price = 152.0
-                # initial_funds = 10000.0  
-                # quantity = 10
-                # initial_quantity = 2234
-
-                log_trade(datetime.now(), symbol, initial_funds, fetched_price, 
-                          trade_price, inventory, buying_power, trade_type)
-
-        except Exception as e:
-            print(f"Error: {e}")
-
-        # Wait 60 seconds
-        time.sleep(poll_interval)
+        data_fetcher = DataFetcher()
+        self.past_data = data_fetcher.get_past_data(self.symbol)
         
-real_time_trading('NVDA')
+    def market_open(self):
+        now = datetime.now()
+        current_day = now.weekday()
+        
+        if current_day >= 0 and current_day <= 4 and 9 <= now.hour < 17:
+            logging.info(f"Market is open: {now}")
+            return True
+            
+        logging.info("Market is closed.")
+        return False
+
+    def fetch_latest_data(self):
+        querystring = {
+            "token": self.api_key,
+            "symbols": self.symbol
+        }
+        headers = {"accept": "application/json"}
+        
+        try:
+            response = requests.get(self.base_url, headers=headers, params=querystring)
+            if response.status_code == 200:
+                data = response.json()
+                quotes = data["quotes"][0]["quote"]
+            
+                extracted_data = {
+                    "time": quotes.get('date'),
+                    "open": quotes.get('open'),
+                    "high": quotes.get('high'),
+                    "low": quotes.get('low'),
+                    "close": quotes.get('last'), 
+                    "volume": quotes.get('volume'),
+                    "dateTime": quotes.get('previousCloseDate') 
+                }
+                
+                logging.info(f"Fetched and extracted data: {extracted_data}")
+                return pd.DataFrame([extracted_data])
+                return
+            else:
+                logging.error(f"Failed to fetch data. Status code: {response.status_code}, Response: {response.text}")
+                return pd.DataFrame()
+        except requests.exceptions.RequestException as e:
+            logging.error(f"An error occurred while fetching data: {e}")
+            return pd.DataFrame()
+
+    def trade_decision(self, prediction):
+        if prediction == 1 or prediction == 2:
+            return "buy"
+        elif prediction == -1 or prediction == -2:
+            return "sell"
+        return ""
+
+    def log_trade_action(self, trade_type, fetched_price, trade_price):
+        log_trade(
+            datetime.now(), self.symbol, self.initial_funds, fetched_price, 
+            trade_price, self.inventory, self.buying_power, trade_type
+        )
+
+    async def perform_trading(self):
+        while self.market_open():
+            try:
+                latest_data = self.fetch_latest_data()
+                print("Successfully fetched latest data")
+                
+                if latest_data.empty:
+                    logging.error("No data fetched, skipping this iteration.")
+                    continue
+                
+                logging.info("Fetched latest data")
+                fetched_price = latest_data["open"].iloc[0]
+                
+                # latest_data.drop_duplicates(subset='time', keep='last', inplace=True)
+                # logging.info("Dropped duplicates from latest data")
+
+                # if self.past_data.empty:
+                #     self.past_data = latest_data
+                #     logging.info("Initialized DataFrame with latest data")
+                # else:
+
+                local_df = pd.concat([self.past_data, latest_data]).drop_duplicates(subset='time', keep='last')
+                logging.info("Updated DataFrame with latest data")
+
+                local_df_TI = self.trading_model.calculate_indicators(local_df)
+                logging.info("Calculated indicators")
+
+                if len(local_df_TI) >= 26:
+                    latest_row = local_df_TI.iloc[-1].copy()
+                    logging.info("Sufficient data for indicators")
+                    
+                    X_real_time = pd.DataFrame({
+                        'macd': [latest_row['macd']],
+                        'macd_hist': [latest_row['macd_hist']],
+                        'rsi': [latest_row['rsi']],
+                        'slowk': [latest_row['slowk']],
+                        'slowd': [latest_row['slowd']]
+                    })
+                    logging.info("Prepared data for prediction")
+                    
+                    prediction = self.model.predict(X_real_time)[0]
+                    logging.info(f"Made prediction: {prediction}")
+                    trade_type = self.trade_decision(prediction)
+                    logging.info(f"Trade decision: {trade_type}")
+
+                    # if trade_type:
+                    trade_price = latest_data["open"].iloc[0]
+                    self.log_trade_action(trade_type, fetched_price, trade_price)
+                    logging.info(f"Logged trade action: {trade_type}")
+
+            except Exception as e:
+                logging.error(f"Error raised during real-time trading: {e}")
+
+            time.sleep(self.poll_interval)
+            logging.info("Sleeping for poll interval\n\n")
+
+if __name__ == "__main__":
+    trader = RealTimeTrader('AAPL')
+    asyncio.run(trader.perform_trading())
