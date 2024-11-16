@@ -47,9 +47,14 @@ class TradingModel:
         logging.info(f"Top 5 Rows:\n{df['close'].head(5)}")
 
         df['signal'] = 0
+        
+        # buy signal
         df.loc[df['price_change'] > threshold, 'signal'] = 1
+        # sell signal
         df.loc[(df['price_change'] < 0) & (df['signal'].shift(1) == 1), 'signal'] = -1
+        # strong sell signal
         df.loc[df['price_change'] < -threshold, 'signal'] = -2
+        # re-entry buy signal
         df.loc[(df['price_change'] > 0) & (df['signal'].shift(1) == -2), 'signal'] = 2
 
         df.dropna(inplace=True)

@@ -1,6 +1,11 @@
 import gradio as gr
 from real_time_trading import real_time_trading
 
+
+
+import gradio as gr
+from real_time_trading import real_time_trading
+
 def trading_interface(symbol):
     # Run the real-time trading for the specified stock and duration
     result = real_time_trading(symbol)
