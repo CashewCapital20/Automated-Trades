@@ -13,6 +13,13 @@ Data Source: Benzinga Time-Series Data
 - Historical (5-min candles): [Benzinga GET Bars](https://docs.benzinga.com/benzinga-apis/bars/get-bars)
 - Real-Time (15-min delay): [Benzinga Delayed API](https://docs.benzinga.com/benzinga-apis/delayed-quote/get-quoteDelayed)
 
+| Technical Indictator | Formula | Parameters | Explanation |
+| --------------- | --------------- | --------------- | --------------- | 
+| Exponential Moving Averages (EMA) | (https://render.githubusercontent.com/render/math?math=e^{i%20%5Cpi}%20%3D%20-1&mode=inline) | 36-period <br> 78-period <br> (3 and 6.5 hours)| Stabilizes trends for 2-day predictions <br> Better than standard spans of 12 & 26 days|
+| Relative Strength Index (RSI) | | 9-period <br> (45 min) | Optimized for voilatile markets | 
+| Moving Average Convergence Divergence (MACD) | | 27-period (Signal Line)  | Focuses on sustained signals, aligning with longer EMAs |
+| Stochastic Oscillator | | 9-period (SlowK) <br> 3-period (SlowD) | (SlowK) Increases sensitivity to recent price action <br> (SlowD) Balances responsiveness with noise reduction |
+
 ## Installing Dependencies
 
 To install the necessary dependencies for this project, follow these steps:
