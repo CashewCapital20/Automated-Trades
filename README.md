@@ -1,8 +1,10 @@
 # Automated Trades
 
-**Our Objective:** 
+Traditional trading methods can be time-intensive, struggle to adapt to rapidly shifting market conditions, and often result in inefficiencies. 
 
-Design a machine learning algorithm that identifies trading opportunities through technical analysis and autonomously determine the best times to enter and exit for any particular stock.
+ 🥜 **Cashew Capital Fund** is a startup investment management fund interested in addressing this gap.
+
+**Our Objective:** Design a machine learning algorithm that identifies trading opportunities through technical analysis and autonomously determine the best times to enter and exit for any particular stock.
 
 ## Installing Dependencies
 
