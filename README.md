@@ -27,24 +27,15 @@ Trading decisions are categorical: you either buy, sell, or hold. Since we want 
 
 ---
 **Method:** Create a label called “signal”  that represents whether we should buy or sell a stock based on its price over the next 2 days
-- Strong sell signal: -2
-- Weak sell signal: -1
-- Hold signal: 0
-- Weak buy signal: 1
-- Strong buy signal: 2  
----
-
-### Signal Type
 
 | Signal Type   | Conditions                                                                                                                                  |
 |---------------|------------------------------------------------------------------------------------------|
-| **Strong Sell** | Min price ≤ 0.95 CP<br>Maximum price from now until the Min position ≤ 1.01 CP                    |
-| **Weak Sell**   | Min price ≤ 0.97 CP<br>Maximum price from now until the Min position ≤ 1.01 CP                    |
-| **Strong Buy**  | Max price ≥ 1.05 CP<br>Minimum price from now until the Max position ≥ 0.99 CP                   |
-| **Weak Buy**    | Max price ≥ 1.03 CP<br>Minimum price from now until the Max position ≥ 0.99 CP                   |
-| **Hold**        | Not Applicable                                     |
+| **Strong Sell (-2)** | Min price ≤ 0.95 CP<br>Maximum price from now until the Min position ≤ 1.01 CP                    |
+| **Weak Sell (-1)**   | Min price ≤ 0.97 CP<br>Maximum price from now until the Min position ≤ 1.01 CP                    |
+| **Strong Buy (2)**  | Max price ≥ 1.05 CP<br>Minimum price from now until the Max position ≥ 0.99 CP                   |
+| **Weak Buy(1)**    | Max price ≥ 1.03 CP<br>Minimum price from now until the Max position ≥ 0.99 CP                   |
+| **Hold (0)**        | Not Applicable                                     |
 
----
 
 ### Legend
 
@@ -55,6 +46,11 @@ Trading decisions are categorical: you either buy, sell, or hold. Since we want 
 - **Future_period** = 155
 - **Threshold_weak** = 3%
 - **Min_diff** = 1%
+
+---
+
+## Signal Sample of NVDA
+![nvda](https://github.com/user-attachments/assets/3bb16aa9-dcc1-4daf-b1d4-e4dc3017dbb6)
 
 
 
@@ -79,11 +75,6 @@ Since our dataset updates daily, we used MongoDB to store our data on the cloud 
 - Trade Type 
 - Monetary Metrics (e.g., trader’s funds and stock prices)
 - Volume
-
-
-## Signal Sample of NVDA
-![nvda](https://github.com/user-attachments/assets/3bb16aa9-dcc1-4daf-b1d4-e4dc3017dbb6)
-
 
 
 ## Installing Dependencies
