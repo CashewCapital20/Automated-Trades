@@ -6,7 +6,7 @@ Traditional trading methods can be time-intensive, struggle to adapt to rapidly 
 
 **Our Objective:** Design a machine learning algorithm that identifies trading opportunities through technical analysis and autonomously determine the best times to enter and exit for any particular stock.
 
-[Link](https://huggingface.co/spaces/cashew-bttai/automated-trades) to Hugging Face GUI
+Check out the [link](https://huggingface.co/spaces/cashew-bttai/automated-trades) to our Hugging Face GUI! 💻🤗
 
 ## Data Preparation
 Data Source: Benzinga Time-Series Data
