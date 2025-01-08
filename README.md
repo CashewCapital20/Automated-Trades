@@ -47,7 +47,6 @@ Trading decisions are categorical: you either buy, sell, or hold. Since we want 
 - **Threshold_weak** = 3%
 - **Min_diff** = 1%
 
----
 
 ## Signal Sample of NVDA
 ![nvda](https://github.com/user-attachments/assets/3bb16aa9-dcc1-4daf-b1d4-e4dc3017dbb6)
