@@ -1,4 +1,4 @@
-# [Cashew Capital Fund - Automated Trades](https://huggingface.co/spaces/cashew-bttai/automated-trades)
+# Cashew Capital Fund - Automated Trades
 
 Traditional trading methods can be time-intensive, struggle to adapt to rapidly shifting market conditions, and often result in inefficiencies. 
 
