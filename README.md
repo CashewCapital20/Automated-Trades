@@ -13,7 +13,7 @@ Data Source: Benzinga Time-Series Data
 - Historical (5-min candles): [Benzinga GET Bars](https://docs.benzinga.com/benzinga-apis/bars/get-bars)
 - Real-Time (15-min delay): [Benzinga Delayed API](https://docs.benzinga.com/benzinga-apis/delayed-quote/get-quoteDelayed)
 
-| Technical Indictator | Formula | Parameters | Explanation |
+| Technical Indictator | Formula | Fine-tuned Parameters | Explanation |
 | --------------- | --------------- | --------------- | --------------- | 
 | Exponential Moving Averages (EMA) | ![ema_formula](https://github.com/user-attachments/assets/e3457d86-849c-4520-9d99-d345c9abbc83) | 36-period <br> 78-period <br> (3 and 6.5 hours)| Stabilizes trends for 2-day predictions <br> Better than standard spans of 12 & 26 days|
 | Relative Strength Index (RSI) | ![rsi_formula](https://github.com/user-attachments/assets/a7145aeb-fadc-4123-b057-110bca19c629) | 9-period <br> (45 min) | Optimized for voilatile markets | 
