@@ -1,12 +1,10 @@
-# Cashew Capital Fund - Automated Trades
+# [Cashew Capital Fund - Automated Trades](https://huggingface.co/spaces/cashew-bttai/automated-trades)
 
 Traditional trading methods can be time-intensive, struggle to adapt to rapidly shifting market conditions, and often result in inefficiencies. 
 
  🥜 **Cashew Capital Fund** is a startup investment management fund interested in using ML to address this gap.
 
 **Our Objective:** Design a machine learning algorithm that identifies trading opportunities through technical analysis and autonomously determine the best times to enter and exit for any particular stock.
-
-Check out the [link](https://huggingface.co/spaces/cashew-bttai/automated-trades) to our Hugging Face GUI! 💻🤗
 
 ## Data Preparation
 Data Source: Benzinga Time-Series Data
@@ -42,7 +40,7 @@ Perfect for high frequency trading! ✨
 | **Hold (0)**        | Not Applicable                                     |
 
 
-### Legend
+**<ins>Legend<ins>**
 
 - **CP** = Current Price
 - **Min** = Min price over 2 days
