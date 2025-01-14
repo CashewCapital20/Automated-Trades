@@ -114,4 +114,4 @@ To install the necessary dependencies for this project, follow these steps:
 ## Credits and Acknowledgements 
 Special thanks to Swathi Senthil, George Abu Daoud, Bharath Venkataraman, and Boshen Parthasarathy for the mentorship and feedback.
 
-**Tools/Libraries:** Google Colab, VSCode, Scikit-learn, MongoDB, Benzinga
+**Tools/Libraries:** Google Colab, VSCode, Scikit-learn, MongoDB, Benzinga, Slack
