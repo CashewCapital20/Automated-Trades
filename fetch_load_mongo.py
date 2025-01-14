@@ -124,9 +124,22 @@ class DataFetcher:
         except Exception as e:
             logging.error(f"Error fetching past data: {e}")
             return pd.DataFrame()
+    
+    def drop_collections(self):
+        client = pymongo.MongoClient(self.mongo_uri)
+        db = client[self.db_name]
+        collections = db.list_collection_names()
+        
+        for collection in collections:
+            if collection.endswith('-156'):
+                db.drop_collection(collection)
+        
+        print("Successfully cleared MongoDB collections")
+        
 
 # Example usage
-# if __name__ == "__main__":
-#     data_fetcher = DataFetcher()
+if __name__ == "__main__":
+    data_fetcher = DataFetcher()
+    data_fetcher.drop_collections()
 #     df = data_fetcher.prepare_data('AAPL')
 #     print(df)

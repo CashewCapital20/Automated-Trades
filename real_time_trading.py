@@ -79,10 +79,10 @@ class RealTimeTrader:
 
     def trade_decision(self, prediction):
         if prediction == 1 or prediction == 2:
-            return "buy"
+            return "Buy"
         elif prediction == -1 or prediction == -2:
-            return "sell"
-        return ""
+            return "Sell"
+        return "Hold"
 
     def log_trade_action(self, trade_type, fetched_price, trade_price):
         log_trade(

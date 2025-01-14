@@ -22,7 +22,7 @@ def fetch_data(stocks, interval='1D'):
             dfs.append(df)
     except Exception as e:
         print(f"Error with fetching data from Benzinga API: {e}")
-
+        
     return dfs
         
 
@@ -89,19 +89,20 @@ def rolling_standard_deviation(df, symbol):
     
     plt.savefig(f'exploratory_analysis/{symbol}_RSD')
 
+
 # ======================================= #
  
-stocks = ["GOOG", "NVDA", "PG", "SPY", "PLTR"]    # sample set of companies
-dfs = fetch_data(stocks)
-# print(dfs)
+# stocks = ["GOOG", "NVDA", "PG", "SPY", "PLTR"]    # sample set of companies
+# dfs = fetch_data(stocks)
+# # print(dfs)
 
-for symbol, df in zip(stocks, dfs):
-    df = calculate_indicators(df)
-    df = df.iloc[15:]
+# for symbol, df in zip(stocks, dfs):
+#     df = calculate_indicators(df)
+#     df = df.iloc[15:]
     
-    print("\nTicker Symbol:", symbol)
-    print(df.isna().sum())
-    plot_indicators(df, symbol)
-    rolling_mean(df, symbol)
-    rolling_standard_deviation(df, symbol)
+#     print("\nTicker Symbol:", symbol)
+#     print(df.isna().sum())
+#     plot_indicators(df, symbol)
+#     rolling_mean(df, symbol)
+#     rolling_standard_deviation(df, symbol)
     
